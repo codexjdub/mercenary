@@ -4,6 +4,8 @@ A 2D pixel-art run-and-gun inspired by the *gameplay loop* of contract-based sho
 
 Built with Phaser 4 + TypeScript + Vite.
 
+**Play it in your browser:** https://codexjdub.github.io/mercenary/ (keyboard or gamepad)
+
 ## Run it
 
 ```bash
