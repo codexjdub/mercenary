@@ -34,7 +34,7 @@ export class Grenadier extends Enemy {
   protected onDie(dir: number): void {
     this.anims.play('gren-dead', true);
     this.body.setVelocity(dir * 60, -120);
-    this.gs.time.delayedCall(80, () => this.fadeOut(600));
+    this.fadeOut(700);
   }
 
   tick(dt: number): void {

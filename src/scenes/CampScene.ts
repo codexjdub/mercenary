@@ -7,7 +7,7 @@ import { materialStrip } from '../ui/panel';
 import { sfx } from '../audio/sfx';
 import { buildGroundStrip } from '../art/tiles';
 import { ANCHORS } from '../art/sprites';
-import { GunArt, ensureGunTexture } from '../art/guns';
+import { GunArt, attachGun, ensureGunTexture } from '../art/guns';
 import { getSave, commit } from '../data/save';
 import { computeStats, moveSpeed } from '../data/gunParts';
 
@@ -42,6 +42,7 @@ export class CampScene extends Phaser.Scene {
   private merc!: Phaser.Physics.Arcade.Sprite;
   private gun!: Phaser.GameObjects.Image;
   private gunArt!: GunArt;
+  private walkSpeed = 0;
   private facing: 1 | -1 = 1;
   private prompt!: Phaser.GameObjects.BitmapText;
   private near: Station | null = null;
@@ -135,11 +136,14 @@ export class CampScene extends Phaser.Scene {
     cam.fadeIn(400, 14, 11, 20);
 
     this.refreshHud();
-    this.events.on(Phaser.Scenes.Events.RESUME, () => {
+    // Scene listeners survive shutdown, so remove this one or each visit stacks another
+    const onResume = () => {
       this.controls.swallow();
       this.equipGun();
       this.refreshHud();
-    });
+    };
+    this.events.on(Phaser.Scenes.Events.RESUME, onResume);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.RESUME, onResume));
 
     const save = getSave();
     if (!save.seenCamp) {
@@ -174,6 +178,7 @@ export class CampScene extends Phaser.Scene {
     const build = save.loadouts[save.equipped];
     this.gunArt = ensureGunTexture(this, build);
     this.gun.setTexture(this.gunArt.key);
+    this.walkSpeed = moveSpeed(computeStats(build));
   }
 
   private refreshHud() {
@@ -217,8 +222,7 @@ export class CampScene extends Phaser.Scene {
     if (!this.leaving) {
       const dir = (c.isDown('right') ? 1 : 0) - (c.isDown('left') ? 1 : 0);
       if (dir) this.facing = dir as 1 | -1;
-      const speed = moveSpeed(computeStats(getSave().loadouts[getSave().equipped]));
-      const target = dir * speed;
+      const target = dir * this.walkSpeed;
       const vx = body.velocity.x;
       body.setVelocityX(vx + Math.sign(target - vx) * Math.min(Math.abs(target - vx), 1300 * dt));
       if (c.justDown('jump') && onGround) {
@@ -240,11 +244,7 @@ export class CampScene extends Phaser.Scene {
     const a = ANCHORS['rook'][frame] ?? { x: 19, y: 17 };
     const left = Math.round(body.x - body.offset.x);
     const top = Math.round(body.y - body.offset.y);
-    const g = this.gunArt;
-    const right = this.facing > 0;
-    this.gun.setFlipX(!right);
-    this.gun.setOrigin(right ? g.grip.x / g.w : (g.w - g.grip.x) / g.w, g.grip.y / g.h);
-    this.gun.setPosition(left + (right ? a.x : 32 - a.x), top + a.y);
+    attachGun(this.gun, this.gunArt, left, top, a, this.facing > 0);
 
     // stations
     const near = STATIONS.find((s) => Math.abs(this.merc.x - s.x) < s.reach) ?? null;

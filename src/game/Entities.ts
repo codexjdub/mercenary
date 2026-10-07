@@ -64,6 +64,8 @@ export class Pickup extends Phaser.Physics.Arcade.Sprite {
   private gs: GameScene;
   private age = 0;
   private magnet = false;
+  /** Tile collider, switched off once the pickup homes in so walls can't pin it. */
+  levelCollider?: Phaser.Physics.Arcade.Collider;
 
   constructor(gs: GameScene, kind: PickupKind, x: number, y: number) {
     super(gs, x, y, `pk_${kind}`);
@@ -81,11 +83,17 @@ export class Pickup extends Phaser.Physics.Arcade.Sprite {
   tick(dt: number): void {
     this.age += dt;
     const p = this.gs.player;
-    if (p.mode === 'dead') return;
+    if (p.mode === 'dead') {
+      if (this.magnet) this.body.setVelocity(0, 0);
+      return;
+    }
     const dx = p.x - this.x;
     const dy = p.y - this.y;
     const d = Math.hypot(dx, dy);
-    if (this.age > 0.45 && d < 56) this.magnet = true;
+    if (this.age > 0.45 && d < 56 && !this.magnet) {
+      this.magnet = true;
+      if (this.levelCollider) this.levelCollider.active = false;
+    }
     if (this.magnet) {
       this.body.setAllowGravity(false);
       const v = Math.min(320, 80 + this.age * 200);
@@ -134,17 +142,21 @@ export class Prop extends Phaser.GameObjects.Image implements Hittable {
     return this.active && this.hp > 0;
   }
 
+  private rect = new Phaser.Geom.Rectangle();
+
+  /** Current hurtbox. Returns a shared rectangle: read it, don't keep it. */
   hitRect(): Phaser.Geom.Rectangle {
-    return new Phaser.Geom.Rectangle(this.x - this.width / 2 + 1, this.y - this.height + 1, this.width - 2, this.height - 1);
+    return this.rect.setTo(this.x - this.width / 2 + 1, this.y - this.height + 1, this.width - 2, this.height - 1);
   }
 
-  damage(n: number): void {
-    if (this.hp <= 0) return;
+  damage(n: number): boolean {
+    if (this.hp <= 0) return false;
     this.hp -= n;
     this.flash = 0.06;
     this.setTint(hex(P.white)).setTintMode(Phaser.TintModes.FILL);
     sfx(this.gs, 'hit', { volume: 0.5, detune: -400 });
     if (this.hp <= 0) this.gs.time.delayedCall(this.kind === 'barrel' ? 60 : 0, () => this.breakApart());
+    return true;
   }
 
   tick(dt: number): void {

@@ -20,6 +20,8 @@ export interface Bullet {
   /** Extra targets this bullet can pass through. */
   pierce: number;
   hits?: Set<Hittable>;
+  /** Counted toward accuracy already (at most once per bullet). */
+  scored?: boolean;
 }
 
 /**
@@ -86,8 +88,10 @@ export class Projectiles {
         if (b.team === 'player') {
           const hit = this.gs.hittableAt(b.x, b.y, b.r, b.hits);
           if (hit) {
-            hit.damage(b.dmg, Math.sign(b.vx) || 0);
-            this.gs.mission.hits++;
+            if (hit.damage(b.dmg, Math.sign(b.vx) || 0) && !b.scored) {
+              b.scored = true;
+              this.gs.mission.hits++;
+            }
             if (b.pierce > 0) {
               b.pierce--;
               (b.hits ??= new Set()).add(hit);

@@ -70,9 +70,9 @@ export class Foreman extends Enemy {
     if (this.body) this.syncBody();
   }
 
-  damage(amount: number, dir: number): void {
-    if (this.ai === 'dormant' || this.ai === 'intro' || this.ai === 'dying') return;
-    super.damage(this.ai === 'stunned' ? amount * 1.5 : amount, dir);
+  damage(amount: number, dir: number): boolean {
+    if (this.ai === 'dormant' || this.ai === 'intro' || this.ai === 'dying') return false;
+    return super.damage(this.ai === 'stunned' ? amount * 1.5 : amount, dir);
   }
 
   activate(): void {
@@ -225,7 +225,7 @@ export class Foreman extends Enemy {
     // contact damage
     if (this.ai !== 'dying' && this.ai !== 'intro') {
       const r = this.hitRect();
-      if (p.hurtsAt(r.centerX, r.centerY, 0) || (p.body.right > r.left + 4 && p.body.left < r.right - 4 && p.body.bottom > r.top + 6 && p.body.top < r.bottom)) {
+      if (p.mode !== 'dead' && p.body.right > r.left + 4 && p.body.left < r.right - 4 && p.body.bottom > r.top + 6 && p.body.top < r.bottom) {
         p.hurt(this.ai === 'charge' ? 25 : this.contactDamage, this.x);
       }
     }
@@ -308,7 +308,6 @@ export class Foreman extends Enemy {
   }
 
   private updateShells(dt: number) {
-    const p = this.player();
     for (let i = this.shells.length - 1; i >= 0; i--) {
       const s = this.shells[i];
       s.delay -= dt;
@@ -321,7 +320,6 @@ export class Foreman extends Enemy {
         s.img.destroy();
         s.marker.destroy();
         this.shells.splice(i, 1);
-        void p;
       }
     }
   }

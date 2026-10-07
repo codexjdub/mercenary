@@ -20,6 +20,8 @@ export class Grunt extends Enemy {
   private aiming = 0;
   private lowShot = false;
   private lostT = 0;
+  /** After a flinch, ignore further flinches briefly so sustained fire can't stun-lock. */
+  private flinchCd = 0;
 
   constructor(gs: GameScene, x: number, y: number) {
     super(gs, x, y - 16, 'grunt', 40);
@@ -38,9 +40,10 @@ export class Grunt extends Enemy {
       this.ai = 'combat';
       this.fireCd = 0.6;
     }
-    if (this.burst === 0 && this.aiming <= 0 && !this.dead) {
+    if (this.burst === 0 && this.aiming <= 0 && !this.dead && this.flinchCd <= 0) {
       this.ai = 'hurt';
       this.t = 0.18;
+      this.flinchCd = 0.75;
       this.body.setVelocityX(dir * 40);
     }
   }
@@ -49,8 +52,7 @@ export class Grunt extends Enemy {
     this.ai = 'dead';
     this.anims.play('grunt-dead', true);
     this.body.setVelocity(dir * 70, -140);
-    this.body.enable = true;
-    this.gs.time.delayedCall(80, () => this.fadeOut(600));
+    this.fadeOut(700);
   }
 
   tick(dt: number): void {
@@ -58,6 +60,7 @@ export class Grunt extends Enemy {
     const b = this.body;
     const p = this.player();
     this.t -= dt;
+    this.flinchCd -= dt;
 
     switch (this.ai) {
       case 'patrol': {
@@ -106,6 +109,9 @@ export class Grunt extends Enemy {
       if (this.lostT > 2.5) {
         this.ai = 'patrol';
         this.lostT = 0;
+        // drop any half-finished burst so re-engaging starts with the aim telegraph
+        this.aiming = 0;
+        this.burst = 0;
         return;
       }
     } else this.lostT = 0;

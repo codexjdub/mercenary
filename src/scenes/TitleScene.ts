@@ -5,6 +5,9 @@ import { P, hex } from '../art/palette';
 import { text } from '../ui/text';
 import { sfx } from '../audio/sfx';
 import { buildGroundStrip } from '../art/tiles';
+import { ANCHORS } from '../art/sprites';
+import { GunArt, attachGun, ensureGunTexture } from '../art/guns';
+import { PRESET_BUILDS } from '../data/gunParts';
 
 export class TitleScene extends Phaser.Scene {
   private controls!: Controls;
@@ -13,6 +16,9 @@ export class TitleScene extends Phaser.Scene {
   private near!: Phaser.GameObjects.TileSprite;
   private ground!: Phaser.GameObjects.TileSprite;
   private prompt!: Phaser.GameObjects.BitmapText;
+  private rook!: Phaser.GameObjects.Sprite;
+  private gun!: Phaser.GameObjects.Image;
+  private gunArt!: GunArt;
   private leaving = false;
 
   constructor() {
@@ -32,13 +38,9 @@ export class TitleScene extends Phaser.Scene {
     buildGroundStrip(this, 'title_ground');
     this.ground = this.add.tileSprite(0, GAME_H - 46, GAME_W, 64, 'title_ground').setOrigin(0);
 
-    const rook = this.add.sprite(150, GAME_H - 46 - 16, 'rook').play('rook-run');
-    const gun = this.add.image(0, 0, 'gun_mutt_field_box_brace_iron');
-    gun.setOrigin(14 / 46, 10 / 18);
-    this.events.on(Phaser.Scenes.Events.UPDATE, () => {
-      const a = [{ x: 19, y: 17 }][0];
-      gun.setPosition(Math.round(rook.x) - 16 + a.x, Math.round(rook.y) - 16 + a.y + (Number(rook.frame.name) % 3 === 0 ? 0 : 0));
-    });
+    this.rook = this.add.sprite(150, GAME_H - 46 - 16, 'rook').play('rook-run');
+    this.gunArt = ensureGunTexture(this, PRESET_BUILDS[0]);
+    this.gun = this.add.image(0, 0, this.gunArt.key);
 
     const grunt = this.add.sprite(370, GAME_H - 46 - 16, 'grunt').play('grunt-run').setFlipX(true);
     this.tweens.add({ targets: grunt, x: 400, yoyo: true, repeat: -1, duration: 1400, ease: 'Sine.easeInOut' });
@@ -62,6 +64,8 @@ export class TitleScene extends Phaser.Scene {
     this.mid.tilePositionX += dx * 0.25;
     this.near.tilePositionX += dx * 0.5;
     this.ground.tilePositionX += dx * 1.8;
+    const anchor = ANCHORS['rook'][Number(this.rook.frame.name)] ?? { x: 19, y: 17 };
+    attachGun(this.gun, this.gunArt, Math.round(this.rook.x) - 16, Math.round(this.rook.y) - 16, anchor, true);
     this.prompt.setVisible(Math.floor(time / 500) % 2 === 0);
     this.prompt.setTint(hex(P.ui));
 

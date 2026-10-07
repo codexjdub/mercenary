@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { DEPTH, PLAYER } from '../constants';
 import { ANCHORS } from '../art/sprites';
-import { GunArt, ensureGunTexture } from '../art/guns';
+import { GunArt, attachGun, ensureGunTexture } from '../art/guns';
 import { GunBuild, GunStats, computeStats, moveSpeed } from '../data/gunParts';
 import { Weapon } from './Weapon';
 import type { GameScene } from '../scenes/GameScene';
@@ -338,6 +338,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   private shoot() {
     const s = this.stats;
+    // control() runs before placeGun(), so sync the gun to this frame's
+    // position and aim first; otherwise the muzzle would lag a frame behind
+    this.placeGun();
     const m = this.muzzle();
     const base = Math.atan2(m.dy, m.dx);
     const key = { tracer: 'b_tracer', pellet: 'b_pellet', needle: 'b_needle', slug: 'b_slug' }[s.bullet];
@@ -380,11 +383,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // only synced after this update, so using this.x would lag a frame.
     const left = Math.round(this.body.x - this.body.offset.x);
     const top = Math.round(this.body.y - this.body.offset.y);
-    const g = this.gunArt;
     const right = this.facing > 0;
-    this.gun.setFlipX(!right);
-    this.gun.setOrigin(right ? g.grip.x / g.w : (g.w - g.grip.x) / g.w, g.grip.y / g.h);
-    this.gun.setPosition(left + (right ? anchor.x : 32 - anchor.x), top + anchor.y);
+    attachGun(this.gun, this.gunArt, left, top, anchor, right);
     let angle = 0;
     if (this.aim === 'up') angle = right ? -90 : 90;
     else if (this.aim === 'down') angle = right ? 90 : -90;

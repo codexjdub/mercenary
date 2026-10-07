@@ -68,8 +68,18 @@ export class GunsmithScene extends Phaser.Scene {
     this.tab = 'assemble';
     this.row = 0;
     this.sel = 0;
+    // Phaser reuses this scene instance on every visit, so per-visit UI lists
+    // must be cleared here or they'd still hold the last visit's destroyed objects
     this.aObjs = [];
     this.cObjs = [];
+    this.rowValues = [];
+    this.rowCounts = [];
+    this.rowLabels = [];
+    this.aDesc = [];
+    this.items = [];
+    this.cRows = [];
+    this.cDesc = [];
+    this.msgT = 0;
     const save = getSave();
     this.slotIdx = save.equipped;
     this.cand = strip(save.loadouts[this.slotIdx]);
@@ -97,9 +107,8 @@ export class GunsmithScene extends Phaser.Scene {
 
   private buildAssemble() {
     const A = (o: Phaser.GameObjects.GameObject) => (this.aObjs.push(o), o);
-    A(text(this, 16, 30, 'LOADOUT', { color: P.uiDim }));
+    this.rowLabels.push(A(text(this, 16, 30, 'LOADOUT', { color: P.uiDim })) as Phaser.GameObjects.BitmapText);
     this.rowValues.push(A(text(this, 84, 30, '')) as Phaser.GameObjects.BitmapText);
-    this.rowLabels.push(this.rowValues[0]);
     this.rowCounts.push(A(text(this, 228, 30, '', { ox: 1, color: P.uiDim })) as Phaser.GameObjects.BitmapText);
     SLOTS.forEach((slot, i) => {
       const y = 52 + i * 17;
@@ -158,6 +167,7 @@ export class GunsmithScene extends Phaser.Scene {
     const fitted = strip(save.loadouts[this.slotIdx]);
     const changed = !same(this.cand, fitted);
     this.rowValues[0].setText(`< ${'ABC'[this.slotIdx]}: ${save.loadouts[this.slotIdx].name} >`).setTint(hex(this.row === 0 ? P.hazard : P.ui));
+    this.rowLabels[0].setTint(hex(this.row === 0 ? P.ui : P.uiDim));
     SLOTS.forEach((slot, i) => {
       const r = i + 1;
       const id = this.cand[slot];

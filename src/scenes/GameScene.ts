@@ -51,6 +51,9 @@ export class GameScene extends Phaser.Scene {
   private camOffX = 0;
   private lastBeep = 999;
   private failing = false;
+  /** Damageable targets (enemies + props), rebuilt only when something is destroyed. */
+  private hitList: Hittable[] = [];
+  private listsDirty = false;
 
   constructor() {
     super('Game');
@@ -71,6 +74,8 @@ export class GameScene extends Phaser.Scene {
     this.camOffX = 0;
     this.lastBeep = 999;
     this.failing = false;
+    this.hitList = [];
+    this.listsDirty = false;
   }
 
   create(): void {
@@ -110,13 +115,13 @@ export class GameScene extends Phaser.Scene {
           break;
         }
         case 'h':
-          this.hostages.push(new Hostage(this, s.x, s.y));
+          this.hostages.push(this.track(new Hostage(this, s.x, s.y)));
           break;
         case '$':
-          this.props.push(new Prop(this, 'supply', s.x, s.y));
+          this.props.push(this.track(new Prop(this, 'supply', s.x, s.y)));
           break;
         case 'o':
-          this.props.push(new Prop(this, 'barrel', s.x, s.y));
+          this.props.push(this.track(new Prop(this, 'barrel', s.x, s.y)));
           break;
         case 'C': {
           const img = this.add.image(s.x, s.y, 'beacon', 0).setOrigin(0.5, 1).setDepth(DEPTH.decor + 1);
@@ -126,6 +131,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    this.hitList = [...this.enemies, ...this.props];
     this.overlayGfx = this.add.graphics().setDepth(DEPTH.overlay);
 
     const cam = this.cameras.main;
@@ -156,39 +162,40 @@ export class GameScene extends Phaser.Scene {
     return true;
   }
 
-  private collideLevel(obj: Phaser.GameObjects.GameObject) {
+  private collideLevel(obj: Phaser.GameObjects.GameObject): Phaser.Physics.Arcade.Collider {
     const c = this.physics.add.collider(obj, this.level.layer);
     obj.once(Phaser.GameObjects.Events.DESTROY, () => c.destroy());
+    return c;
+  }
+
+  /** Flags the entity lists for pruning when this object is destroyed. */
+  private track<T extends Phaser.GameObjects.GameObject>(obj: T): T {
+    obj.once(Phaser.GameObjects.Events.DESTROY, () => (this.listsDirty = true));
+    return obj;
   }
 
   private addEnemy(e: Enemy) {
-    this.enemies.push(e);
+    this.enemies.push(this.track(e));
     this.collideLevel(e);
     e.setCollideWorldBounds(true);
   }
 
   spawnPickup(kind: Material | PickupKind, x: number, y: number): void {
     const p = new Pickup(this, kind, x, y);
-    this.pickups.push(p);
-    this.collideLevel(p);
+    this.pickups.push(this.track(p));
+    p.levelCollider = this.collideLevel(p);
   }
 
   spawnGrenade(x: number, y: number, vx: number, vy: number): void {
     const g = new Grenade(this, x, y, vx, vy);
-    this.grenades.push(g);
+    this.grenades.push(this.track(g));
     this.collideLevel(g);
   }
 
-  private hittables(): Hittable[] {
-    const list: Hittable[] = [];
-    for (const e of this.enemies) if (e.alive) list.push(e);
-    for (const p of this.props) if (p.alive) list.push(p);
-    return list;
-  }
-
+  // Hit tests run per bullet substep, so they walk the cached list without allocating.
   hittableAt(x: number, y: number, r: number, exclude?: Set<Hittable>): Hittable | null {
-    for (const h of this.hittables()) {
-      if (exclude?.has(h)) continue;
+    for (const h of this.hitList) {
+      if (!h.alive || exclude?.has(h)) continue;
       const rect = h.hitRect();
       if (x + r > rect.left && x - r < rect.right && y + r > rect.top && y - r < rect.bottom) return h;
     }
@@ -196,7 +203,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   hittablesIn(area: Phaser.Geom.Rectangle): Hittable[] {
-    return this.hittables().filter((h) => Phaser.Geom.Intersects.RectangleToRectangle(area, h.hitRect()));
+    return this.hitList.filter((h) => h.alive && Phaser.Geom.Intersects.RectangleToRectangle(area, h.hitRect()));
   }
 
   explode(x: number, y: number, radius: number, dmgPlayer: number, dmgEnemies: number): void {
@@ -204,7 +211,8 @@ export class GameScene extends Phaser.Scene {
     sfx(this, 'explosion');
     this.cameras.main.shake(220, 0.01);
     if (dmgEnemies > 0) {
-      for (const h of this.hittables()) {
+      for (const h of this.hitList) {
+        if (!h.alive) continue;
         const r = h.hitRect();
         const cx = Phaser.Math.Clamp(x, r.left, r.right);
         const cy = Phaser.Math.Clamp(y, r.top, r.bottom);
@@ -321,12 +329,14 @@ export class GameScene extends Phaser.Scene {
     for (const p of this.pickups) if (p.active) p.tick(dt);
     for (const g of this.grenades) if (g.active) g.tick(dt);
     for (const p of this.props) if (p.active) p.tick(dt);
-    if (this.time.now % 60 < 17) {
+    if (this.listsDirty) {
+      this.listsDirty = false;
       this.enemies = this.enemies.filter((e) => e.active);
       this.pickups = this.pickups.filter((p) => p.active);
       this.grenades = this.grenades.filter((g) => g.active);
       this.props = this.props.filter((p) => p.active);
       this.hostages = this.hostages.filter((h) => h.active);
+      this.hitList = [...this.enemies, ...this.props];
     }
 
     this.projectiles.update(dt);

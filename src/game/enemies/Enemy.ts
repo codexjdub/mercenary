@@ -42,13 +42,16 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
     return this.body.bottom;
   }
 
+  private rect = new Phaser.Geom.Rectangle();
+
+  /** Current hurtbox. Returns a shared rectangle: read it, don't keep it. */
   hitRect(): Phaser.Geom.Rectangle {
     const b = this.body;
-    return new Phaser.Geom.Rectangle(b.x, b.y, b.width, b.height);
+    return this.rect.setTo(b.x, b.y, b.width, b.height);
   }
 
-  damage(amount: number, dir: number): void {
-    if (this.dead) return;
+  damage(amount: number, dir: number): boolean {
+    if (this.dead) return false;
     this.hp -= amount;
     this.flashT = 0.06;
     this.onHurt(dir);
@@ -61,6 +64,7 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
     } else {
       sfx(this.gs, 'hit', { volume: 0.7 });
     }
+    return true;
   }
 
   protected onHurt(_dir: number): void {}
@@ -130,8 +134,9 @@ export abstract class Enemy extends Phaser.Physics.Arcade.Sprite implements Hitt
     this.setFlipX(this.facing < 0);
   }
 
+  /** Let the corpse fall and settle (body stays enabled so it lands), then fade. */
   protected fadeOut(delay = 700): void {
-    this.body.enable = false;
+    this.body.setDragX(260);
     this.gs.time.delayedCall(delay, () => {
       this.gs.tweens.add({
         targets: this,

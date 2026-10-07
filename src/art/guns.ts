@@ -230,3 +230,21 @@ export function ensureGunTexture(scene: Phaser.Scene, b: GunBuild, hands = true)
   cache.set(key, out);
   return out;
 }
+
+/**
+ * Places a held gun so its grip sits on a humanoid frame's anchor pixel.
+ * `left`/`top` are the 32x32 frame's top-left in world space. Mirrors the
+ * origin when facing left so 90-degree aim rotations stay pixel-exact.
+ */
+export function attachGun(
+  gun: Phaser.GameObjects.Image,
+  art: GunArt,
+  left: number,
+  top: number,
+  anchor: { x: number; y: number },
+  facingRight: boolean,
+): void {
+  gun.setFlipX(!facingRight);
+  gun.setOrigin(facingRight ? art.grip.x / art.w : (art.w - art.grip.x) / art.w, art.grip.y / art.h);
+  gun.setPosition(left + (facingRight ? anchor.x : 32 - anchor.x), top + anchor.y);
+}
