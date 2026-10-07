@@ -1,4 +1,4 @@
-# Hired Steel
+# Mercenary
 
 A 2D pixel-art run-and-gun inspired by the *gameplay loop* of contract-based shooters like Mercenary Kings: timed missions, modular gunsmithing, active reloads, and material farming. All art, characters, names, and sound are original and generated in code — there are no external asset files.
 
@@ -43,7 +43,7 @@ Title → **Camp** → Mission Board → Briefing (pick loadout A/B/C) → Missi
 - **Gunsmith (Brass)** — *Assemble* fits owned parts into three loadout slots with live stat comparison; *Craft* spends materials to unlock new parts (two receivers, barrels, mags, a stock, sights).
 - **Comms & Records** — career stats. Hold R for 2s to wipe the save.
 - Materials you collect are banked when a mission ends; a failed run salvages half.
-- Progress is saved in browser localStorage (`hired-steel-save`).
+- Progress is saved in browser localStorage (`mercenary-save`).
 
 ## Project layout
 

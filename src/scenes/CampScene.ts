@@ -125,7 +125,7 @@ export class CampScene extends Phaser.Scene {
     hud.fillStyle(hex(P.ink), 0.75).fillRect(0, 0, GAME_W, 18);
     hud.fillStyle(hex(P.ink), 0.6).fillRect(0, GAME_H - 15, GAME_W, 15);
     this.matLabels = materialStrip(this, 8, 5, 40, 41, true);
-    text(this, GAME_W / 2, 5, 'HIRED STEEL CAMP', { ox: 0.5, color: P.uiDim, fixed: true, depth: 41 });
+    text(this, GAME_W / 2, 5, 'MERCENARY CAMP', { ox: 0.5, color: P.uiDim, fixed: true, depth: 41 });
     this.loadoutLabel = text(this, GAME_W - 8, 5, '', { ox: 1, fixed: true, depth: 41 });
     text(this, GAME_W / 2, GAME_H - 11, 'ARROWS MOVE   UP INTERACT   ESC TITLE', { ox: 0.5, color: P.uiDim, fixed: true, depth: 41 });
 

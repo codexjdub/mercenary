@@ -46,7 +46,7 @@ export class TitleScene extends Phaser.Scene {
     this.tweens.add({ targets: grunt, x: 400, yoyo: true, repeat: -1, duration: 1400, ease: 'Sine.easeInOut' });
 
     // title card
-    const t1 = text(this, GAME_W / 2, 34, 'HIRED STEEL', { ox: 0.5, scale: 4, color: P.hazard });
+    const t1 = text(this, GAME_W / 2, 34, 'MERCENARY', { ox: 0.5, scale: 4, color: P.hazard });
     text(this, GAME_W / 2, 74, 'A CONTRACT RUN-AND-GUN', { ox: 0.5, color: P.ui });
     this.tweens.add({ targets: t1, y: 30, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 

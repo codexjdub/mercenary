@@ -5,7 +5,9 @@ import { CATALOG, Cost, GunBuild, PRESET_BUILDS, SLOTS, Slot, nameBuild } from '
 // Persistent career data. Stored in localStorage when available; falls back
 // to memory (private windows, blocked storage) so the game never breaks.
 
-const KEY = 'hired-steel-save';
+const KEY = 'mercenary-save';
+/** Key used before the game was renamed from Hired Steel; migrated on first load. */
+const LEGACY_KEY = 'hired-steel-save';
 const MATS: Material[] = ['scrap', 'wire', 'alloy'];
 const RANK_ORDER = ['S', 'A', 'B', 'C'];
 
@@ -70,13 +72,27 @@ function sanitize(raw: Partial<SaveData>): SaveData {
 export function getSave(): SaveData {
   if (data) return data;
   let raw: Partial<SaveData> | null = null;
+  let legacy = false;
   try {
-    const s = localStorage.getItem(KEY);
+    let s = localStorage.getItem(KEY);
+    if (s === null) {
+      s = localStorage.getItem(LEGACY_KEY);
+      legacy = s !== null;
+    }
     if (s) raw = JSON.parse(s) as Partial<SaveData>;
   } catch {
     raw = null;
   }
   data = raw ? sanitize(raw) : defaults();
+  if (legacy) {
+    // move the old save to the new key; only drop the old copy once the write succeeds
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      localStorage.removeItem(LEGACY_KEY);
+    } catch {
+      /* storage unavailable: keep the legacy copy */
+    }
+  }
   return data;
 }
 

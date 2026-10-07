@@ -205,7 +205,7 @@ function crates(): PixelCanvas {
   return pc;
 }
 
-/** Company banner: original "Hired Steel" gear-and-blade emblem. */
+/** Company banner: original gear-and-blade emblem. */
 function flag(frame: number): PixelCanvas {
   const pc = new PixelCanvas(40, 70);
   pc.rect(2, 2, 2, 68, P.metalShade).rect(1, 0, 4, 3, P.brass);
