@@ -65,3 +65,7 @@ Done: one full mission (3 rescues + boss), three gun builds composed from parts,
 Also done: walkable base camp, gunsmith crafting/assembly, persistent saves.
 
 Next up: more missions reusing areas, music, co-op.
+
+## License
+
+MIT, covering the code and all generated art and sound. See [LICENSE](LICENSE).
