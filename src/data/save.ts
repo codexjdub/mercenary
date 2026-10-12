@@ -48,46 +48,78 @@ function defaults(): SaveData {
 
 let data: SaveData | null = null;
 
-function sanitize(raw: Partial<SaveData>): SaveData {
+// Stored saves can be damaged or hand-edited, so every field is type-checked
+// and anything that doesn't fit falls back to its default.
+type Loose = Record<string, unknown>;
+const obj = (v: unknown): Loose => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Loose) : {});
+const num = (v: unknown, fallback = 0): number => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+const counts = (v: unknown): Record<Material, number> => {
+  const o = obj(v);
+  return { scrap: num(o.scrap), wire: num(o.wire), alloy: num(o.alloy) };
+};
+
+function sanitize(raw: Loose): SaveData {
   const d = defaults();
-  const out: SaveData = { ...d, ...raw, v: 1 } as SaveData;
-  out.materials = { ...d.materials, ...(raw.materials ?? {}) };
-  out.career = { ...d.career, ...(raw.career ?? {}), banked: { ...d.career.banked, ...(raw.career?.banked ?? {}) } };
-  out.missions = raw.missions ?? {};
+  const career = obj(raw.career);
+  const missions: Record<string, MissionRecord> = {};
+  for (const [id, v] of Object.entries(obj(raw.missions))) {
+    const r = obj(v);
+    missions[id] = {
+      runs: num(r.runs),
+      clears: num(r.clears),
+      bestRank: typeof r.bestRank === 'string' && RANK_ORDER.includes(r.bestRank) ? r.bestRank : null,
+      bestTime: typeof r.bestTime === 'number' && Number.isFinite(r.bestTime) ? r.bestTime : null,
+    };
+  }
   // owned parts must exist; default parts are always owned
-  out.owned = Array.from(new Set([...d.owned, ...(raw.owned ?? []).filter((k) => {
+  const stored = Array.isArray(raw.owned) ? raw.owned : [];
+  const owned = Array.from(new Set([...d.owned, ...stored.filter((k): k is string => {
+    if (typeof k !== 'string') return false;
     const [slot, id] = k.split(':') as [Slot, string];
     return CATALOG[slot]?.[id] !== undefined;
   })]));
   // loadouts must reference parts that exist and are owned
-  const valid = (b: GunBuild) => SLOTS.every((s) => out.owned.includes(partKey(s, b[s])));
-  out.loadouts = d.loadouts.map((preset, i) => {
-    const b = raw.loadouts?.[i];
-    return b && valid(b) ? { ...b, name: nameBuild(b) } : preset;
+  const valid = (b: Loose) => SLOTS.every((s) => typeof b[s] === 'string' && owned.includes(partKey(s, b[s] as string)));
+  const loadouts = d.loadouts.map((preset, i) => {
+    const b = obj(Array.isArray(raw.loadouts) ? raw.loadouts[i] : undefined);
+    if (!valid(b)) return preset;
+    const parts = Object.fromEntries(SLOTS.map((s) => [s, b[s]])) as Omit<GunBuild, 'name'>;
+    return { ...parts, name: nameBuild(parts) };
   });
-  out.equipped = Math.min(Math.max(0, out.equipped | 0), out.loadouts.length - 1);
-  return out;
+  return {
+    v: 1,
+    materials: counts(raw.materials),
+    owned,
+    loadouts,
+    equipped: Math.min(Math.max(0, num(raw.equipped) | 0), loadouts.length - 1),
+    missions,
+    career: { kills: num(career.kills), runs: num(career.runs), clears: num(career.clears), banked: counts(career.banked) },
+    seenCamp: raw.seenCamp === true,
+  };
+}
+
+/** Loads one stored save; null if it is missing, unreadable, or storage is blocked. */
+function read(key: string): SaveData | null {
+  try {
+    const s = localStorage.getItem(key);
+    const raw: unknown = s ? JSON.parse(s) : null;
+    return raw && typeof raw === 'object' && !Array.isArray(raw) ? sanitize(raw as Loose) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function getSave(): SaveData {
   if (data) return data;
-  let raw: Partial<SaveData> | null = null;
-  let legacy = false;
-  try {
-    let s = localStorage.getItem(KEY);
-    if (s === null) {
-      s = localStorage.getItem(LEGACY_KEY);
-      legacy = s !== null;
-    }
-    if (s) raw = JSON.parse(s) as Partial<SaveData>;
-  } catch {
-    raw = null;
-  }
-  data = raw ? sanitize(raw) : defaults();
-  if (legacy) {
-    // move the old save to the new key; only drop the old copy once the write succeeds
+  const current = read(KEY);
+  const legacy = read(LEGACY_KEY);
+  // A tab still running a pre-rename build can write the legacy key even after
+  // a migration, so when both exist keep whichever save has more runs on it.
+  data = legacy && (!current || legacy.career.runs > current.career.runs) ? legacy : (current ?? defaults());
+  // Drop the legacy copy only once the new key holds the save we kept. A legacy
+  // save that can't be read is left alone so it can still be recovered by hand.
+  if (legacy && (data === current || commit())) {
     try {
-      localStorage.setItem(KEY, JSON.stringify(data));
       localStorage.removeItem(LEGACY_KEY);
     } catch {
       /* storage unavailable: keep the legacy copy */
@@ -96,11 +128,13 @@ export function getSave(): SaveData {
   return data;
 }
 
-export function commit(): void {
+/** Writes the save to storage. Returns false if storage is unavailable; the save then lives in memory only. */
+export function commit(): boolean {
   try {
     localStorage.setItem(KEY, JSON.stringify(getSave()));
+    return true;
   } catch {
-    /* storage unavailable: keep in memory */
+    return false;
   }
 }
 

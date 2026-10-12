@@ -51,7 +51,7 @@ export class TitleScene extends Phaser.Scene {
     this.tweens.add({ targets: t1, y: 30, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
     this.prompt = text(this, GAME_W / 2, 118, 'PRESS ENTER OR START', { ox: 0.5, color: P.ui });
-    text(this, GAME_W - 6, GAME_H - 11, 'V0.1 VERTICAL SLICE', { ox: 1, color: P.uiDim });
+    text(this, GAME_W - 6, GAME_H - 11, `V${__APP_VERSION__} VERTICAL SLICE`, { ox: 1, color: P.uiDim });
 
     this.cameras.main.fadeIn(500, 14, 11, 20);
   }
