@@ -20,7 +20,7 @@ export const T = {
   GATE: 12,
 } as const;
 
-export const TILE_COUNT = 13;
+const TILE_COUNT = 13;
 export const SOLID_TILES: number[] = [T.TOP, T.TOP_L, T.TOP_R, T.DIRT, T.DIRT2, T.DIRT_L, T.DIRT_R, T.CONC_TOP, T.CONC, T.CRATE, T.GATE];
 export const ONE_WAY_TILES: number[] = [T.PLANK, T.GIRDER];
 

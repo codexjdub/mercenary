@@ -4,8 +4,8 @@
 import type { Material } from '../game/Mission';
 import { PLAYER } from '../constants';
 
-export type FireMode = 'auto' | 'semi';
-export type BulletKind = 'tracer' | 'pellet' | 'needle' | 'slug';
+type FireMode = 'auto' | 'semi';
+type BulletKind = 'tracer' | 'pellet' | 'needle' | 'slug';
 export type Slot = 'receiver' | 'barrel' | 'magazine' | 'stock' | 'sight';
 export type Cost = Partial<Record<Material, number>>;
 
@@ -16,7 +16,7 @@ interface PartBase {
   cost?: Cost;
 }
 
-export interface Receiver extends PartBase {
+interface Receiver extends PartBase {
   callsign: string;
   mode: FireMode;
   damage: number;
@@ -31,7 +31,7 @@ export interface Receiver extends PartBase {
   shake: number;
 }
 
-export interface Barrel extends PartBase {
+interface Barrel extends PartBase {
   tag: string;
   damageMul: number;
   spreadAdd: number;
@@ -51,12 +51,12 @@ export interface Magazine extends PartBase {
   weight: number;
 }
 
-export interface Stock extends PartBase {
+interface Stock extends PartBase {
   spreadMul: number;
   weight: number;
 }
 
-export interface Sight extends PartBase {
+interface Sight extends PartBase {
   spreadMul: number;
   rangeMul: number;
   weight: number;

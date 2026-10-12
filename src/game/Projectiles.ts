@@ -4,7 +4,7 @@ import type { GameScene } from '../scenes/GameScene';
 import { sfx } from '../audio/sfx';
 import type { Hittable } from './types';
 
-export interface Bullet {
+interface Bullet {
   img: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
   x: number;
   y: number;

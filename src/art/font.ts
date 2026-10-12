@@ -5,8 +5,8 @@ import { P } from './palette';
 // Glyphs are white so BitmapText.setTint() can recolor them.
 
 export const FONT_KEY = 'font';
-export const FONT_CELL_W = 7;
-export const FONT_CELL_H = 9;
+const FONT_CELL_W = 7;
+const FONT_CELL_H = 9;
 
 const G: Record<string, string[]> = {
   A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
@@ -69,7 +69,7 @@ const G: Record<string, string[]> = {
   ']': ['.###.', '...#.', '...#.', '...#.', '...#.', '...#.', '.###.'],
 };
 
-export const FONT_CHARS = Object.keys(G).join('');
+const FONT_CHARS = Object.keys(G).join('');
 
 export function buildFont(scene: Phaser.Scene): void {
   const chars = FONT_CHARS;

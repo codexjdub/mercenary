@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { DEPTH, TILE } from '../constants';
 import { ONE_WAY_TILES, SOLID_TILES, T } from '../art/tiles';
 
-export interface Spawn {
+interface Spawn {
   kind: string;
   tx: number;
   ty: number;

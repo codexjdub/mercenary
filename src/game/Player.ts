@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEPTH, PLAYER } from '../constants';
+import { DEPTH, MAX_FALL, PLAYER } from '../constants';
 import { ANCHORS } from '../art/sprites';
 import { GunArt, attachGun, ensureGunTexture } from '../art/guns';
 import { GunBuild, GunStats, computeStats, moveSpeed } from '../data/gunParts';
@@ -58,7 +58,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     gs.physics.add.existing(this);
     this.setDepth(DEPTH.player);
     this.setStanding(true);
-    this.body.setMaxVelocityY(400);
+    this.body.setMaxVelocityY(MAX_FALL);
     this.setCollideWorldBounds(true);
 
     this.gunArt = ensureGunTexture(gs, build);

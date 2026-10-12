@@ -17,7 +17,7 @@
 //   t  tree   b  bush   f  fern   s  sandbags   l  lamp
 //   k  warning sign   w  barbed wire   r  rock
 
-export const ROWS = 30;
+const ROWS = 30;
 
 interface Section {
   w: number;

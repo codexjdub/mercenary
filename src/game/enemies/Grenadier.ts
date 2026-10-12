@@ -4,7 +4,7 @@ import type { GameScene } from '../../scenes/GameScene';
 import { sfx } from '../../audio/sfx';
 import { GRAVITY } from '../../constants';
 
-type State = 'patrol' | 'alert' | 'combat' | 'windup' | 'release' | 'hurt';
+type State = 'patrol' | 'alert' | 'combat' | 'windup' | 'release';
 
 /** Heavy trooper that lobs bouncing grenades in an arc at the player. */
 export class Grenadier extends Enemy {
@@ -100,9 +100,6 @@ export class Grenadier extends Enemy {
           this.ai = 'combat';
           this.throwCd = Phaser.Math.FloatBetween(2, 2.8);
         }
-        break;
-      case 'hurt':
-        this.ai = 'combat';
         break;
     }
     this.setFlipX(this.facing < 0);

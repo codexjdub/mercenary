@@ -11,14 +11,14 @@ const LEGACY_KEY = 'hired-steel-save';
 const MATS: Material[] = ['scrap', 'wire', 'alloy'];
 const RANK_ORDER = ['S', 'A', 'B', 'C'];
 
-export interface MissionRecord {
+interface MissionRecord {
   runs: number;
   clears: number;
   bestRank: string | null;
   bestTime: number | null;
 }
 
-export interface SaveData {
+interface SaveData {
   v: 1;
   materials: Record<Material, number>;
   owned: string[]; // "slot:id"
@@ -29,7 +29,7 @@ export interface SaveData {
   seenCamp: boolean;
 }
 
-export const partKey = (slot: Slot, id: string) => `${slot}:${id}`;
+const partKey = (slot: Slot, id: string) => `${slot}:${id}`;
 
 function defaults(): SaveData {
   const owned: string[] = [];
@@ -176,7 +176,7 @@ export function ownedIds(slot: Slot): string[] {
   return Object.keys(CATALOG[slot]).filter((id) => owns(slot, id));
 }
 
-export interface BankReceipt {
+interface BankReceipt {
   banked: Record<Material, number>;
   salvage: boolean;
   newBestRank: boolean;

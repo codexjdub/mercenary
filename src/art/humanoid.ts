@@ -38,7 +38,7 @@ interface Pt {
   y: number;
 }
 
-export type ArmMode =
+type ArmMode =
   | 'gun'
   | 'gunHigh'
   | 'knife'

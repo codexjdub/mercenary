@@ -1,7 +1,7 @@
 import { PLAYER } from '../constants';
 import type { GunStats } from '../data/gunParts';
 
-export type ReloadEvent = 'started' | 'perfect' | 'jam' | 'done' | null;
+type ReloadEvent = 'started' | 'perfect' | 'jam' | 'done' | null;
 
 /**
  * Magazine + active-reload state machine.

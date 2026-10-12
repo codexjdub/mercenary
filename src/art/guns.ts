@@ -29,7 +29,7 @@ const WOOD_L = '#aa7444';
 
 const cache = new Map<string, GunArt>();
 
-export function drawGun(b: GunBuild, hands = true): { pc: PixelCanvas; art: Omit<GunArt, 'key'> } {
+function drawGun(b: GunBuild, hands = true): { pc: PixelCanvas; art: Omit<GunArt, 'key'> } {
   const pc = new PixelCanvas(W, H);
   const rec = RECEIVERS[b.receiver];
   const bar = BARRELS[b.barrel];

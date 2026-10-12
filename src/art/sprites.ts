@@ -127,7 +127,6 @@ function buildHumans(scene: Phaser.Scene): void {
   ]);
   anim(scene, 'gren-idle', 'grenadier', [0, 1], 2);
   anim(scene, 'gren-walk', 'grenadier', [2, 3, 4, 5, 6, 7], 7);
-  anim(scene, 'gren-hurt', 'grenadier', [10], 1);
   anim(scene, 'gren-dead', 'grenadier', [11], 1);
 
   // Captured engineer

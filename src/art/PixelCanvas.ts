@@ -2,7 +2,7 @@
 // Shapes are drawn with palette colors, then `outline()` adds the crisp dark
 // silhouette that makes chunky pixel art read well at small sizes.
 
-export type Px = string | null;
+type Px = string | null;
 
 export class PixelCanvas {
   readonly w: number;

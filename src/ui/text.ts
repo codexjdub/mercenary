@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { FONT_KEY } from '../art/font';
 import { hex } from '../art/palette';
 
-export interface TextOpts {
+interface TextOpts {
   color?: string;
   scale?: number;
   ox?: number;

@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 // Unified input: keyboard (two layouts at once) + gamepad. Tracks just-pressed
 // edges ourselves so behavior is identical across scenes.
 
-export type Action = 'left' | 'right' | 'up' | 'down' | 'jump' | 'fire' | 'reload' | 'melee' | 'ration' | 'pause' | 'confirm' | 'back' | 'interact' | 'tabL' | 'tabR';
+type Action = 'left' | 'right' | 'up' | 'down' | 'jump' | 'fire' | 'reload' | 'melee' | 'ration' | 'pause' | 'confirm' | 'back' | 'interact' | 'tabL' | 'tabR';
 
 const KEYMAP: Record<Action, string[]> = {
   left: ['LEFT', 'A'],

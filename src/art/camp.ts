@@ -309,5 +309,4 @@ export function buildCampArt(scene: Phaser.Scene): void {
     frameRate: 5,
     repeat: -1,
   });
-  scene.anims.create({ key: 'brass-wave', frames: [3, 2].map((f) => ({ key: 'brass', frame: f })), frameRate: 4, repeat: -1 });
 }
